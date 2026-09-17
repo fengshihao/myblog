@@ -10,10 +10,11 @@
 		const blocks = Array.from(document.querySelectorAll('pre > code.language-mermaid'));
 		if (!blocks.length) return;
 
+		const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 		const mermaid = (await import('mermaid')).default;
 		mermaid.initialize({
 			startOnLoad: false,
-			theme: 'neutral',
+			theme: prefersDark ? 'dark' : 'neutral',
 			securityLevel: 'loose',
 			fontFamily: 'ui-sans-serif, system-ui, sans-serif',
 		});
