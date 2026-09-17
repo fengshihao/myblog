@@ -8,11 +8,9 @@
  */
 export const GISCUS = {
 	repo: 'fengshihao/myblog' as `${string}/${string}`,
-	/** 在 giscus.app 生成，形如 R_kgDO... */
-	repoId: '',
+	repoId: 'R_kgDOUe6g7w',
 	category: 'Announcements',
-	/** 在 giscus.app 生成，形如 DIC_kwDO... */
-	categoryId: '',
+	categoryId: 'DIC_kwDOUe6g784DF0I9',
 	mapping: 'pathname' as const,
 	strict: '0' as const,
 	reactionsEnabled: '1' as const,
