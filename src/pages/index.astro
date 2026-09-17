@@ -20,11 +20,7 @@ const posts = (await getCollection('blog')).sort(
 	<body>
 		<Header />
 		<main>
-			<section class="intro">
-				<h1>{SITE_TITLE}</h1>
-				<p>{SITE_DESCRIPTION}</p>
-			</section>
-
+			<h1 class="sr-only">{SITE_TITLE}</h1>
 			<section class="posts" aria-label="文章列表">
 				{
 					posts.map((post) => (
@@ -44,23 +40,6 @@ const posts = (await getCollection('blog')).sort(
 </html>
 
 <style>
-	.intro {
-		margin-bottom: 3.5rem;
-		padding-bottom: 2.5rem;
-		border-bottom: 1px solid var(--line);
-	}
-
-	.intro h1 {
-		margin: 0 0 0.75rem;
-	}
-
-	.intro p {
-		margin: 0;
-		max-width: 28em;
-		color: var(--fg-2);
-		font-size: 1.1rem;
-	}
-
 	.posts {
 		display: flex;
 		flex-direction: column;
@@ -68,8 +47,8 @@ const posts = (await getCollection('blog')).sort(
 
 	.item {
 		display: grid;
-		gap: 0.35rem;
-		padding: 1.6rem 0;
+		gap: 0.3rem;
+		padding: 1.5rem 0;
 		border-bottom: 1px solid var(--line);
 		text-decoration: none;
 		color: inherit;
@@ -88,24 +67,19 @@ const posts = (await getCollection('blog')).sort(
 	}
 
 	.date {
-		color: var(--fg-3);
-		font-size: 0.82rem;
-		letter-spacing: 0.03em;
+		color: var(--muted);
+		font-size: 0.875em;
 	}
 
 	.title {
-		font-family: 'Songti SC', 'Noto Serif SC', Georgia, serif;
-		font-size: 1.45rem;
+		font-size: 1.15em;
 		font-weight: 600;
-		line-height: 1.35;
-		letter-spacing: -0.02em;
+		line-height: 1.5;
 		transition: opacity 0.15s ease;
 	}
 
 	.summary {
-		color: var(--fg-2);
-		font-size: 0.98rem;
-		line-height: 1.6;
+		color: var(--muted);
 		max-width: 36em;
 	}
 </style>

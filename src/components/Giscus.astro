@@ -1,35 +1,253 @@
 ---
 import { GISCUS, isGiscusConfigured } from '../config/giscus';
+
+const giscusAttrs = isGiscusConfigured
+	? {
+			repo: GISCUS.repo,
+			repoId: GISCUS.repoId,
+			category: GISCUS.category,
+			categoryId: GISCUS.categoryId,
+			mapping: GISCUS.mapping,
+			strict: GISCUS.strict,
+			reactionsEnabled: '0',
+			emitMetadata: GISCUS.emitMetadata,
+			inputPosition: GISCUS.inputPosition,
+			lang: GISCUS.lang,
+		}
+	: null;
 ---
 
 {
-	isGiscusConfigured ? (
-		<section class="giscus-wrap" aria-label="评论">
-			<script
-				src="https://giscus.app/client.js"
-				data-repo={GISCUS.repo}
-				data-repo-id={GISCUS.repoId}
-				data-category={GISCUS.category}
-				data-category-id={GISCUS.categoryId}
-				data-mapping={GISCUS.mapping}
-				data-strict={GISCUS.strict}
-				data-reactions-enabled={GISCUS.reactionsEnabled}
-				data-emit-metadata={GISCUS.emitMetadata}
-				data-input-position={GISCUS.inputPosition}
-				data-theme={GISCUS.theme}
-				data-lang={GISCUS.lang}
-				data-loading="lazy"
-				crossorigin="anonymous"
-				async
-			/>
+	giscusAttrs && (
+		<section
+			class="comments"
+			aria-label="评论"
+			data-giscus={JSON.stringify(giscusAttrs)}
+		>
+			<link rel="preconnect" href="https://giscus.app" crossorigin="anonymous" />
+			<link rel="dns-prefetch" href="https://giscus.app" />
+
+			<button
+				type="button"
+				class="entry"
+				aria-expanded="false"
+				aria-controls="comments-panel"
+				aria-label="展开评论"
+				title="评论"
+			>
+				<svg class="icon icon-open" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+					<path
+						fill="currentColor"
+						d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 4v2h12V8H6Zm0 4v2h8v-2H6Z"
+					/>
+				</svg>
+				<svg class="icon icon-close" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+					<path
+						fill="currentColor"
+						d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5 12 10.6 6.4 5Z"
+					/>
+				</svg>
+			</button>
+
+			{/* 不用 hidden/display:none，否则 iframe 会被浏览器推迟加载 */}
+			<div class="panel" id="comments-panel" aria-hidden="true" inert>
+				<div class="panel-inner">
+					<div class="giscus" />
+				</div>
+			</div>
 		</section>
-	) : null
+	)
 }
 
+<script>
+	function themeForSystem() {
+		return window.matchMedia('(prefers-color-scheme: dark)').matches
+			? 'transparent_dark'
+			: 'noborder_light';
+	}
+
+	function mountGiscus(host: Element, attrs: Record<string, string>) {
+		if (host.querySelector('script.giscus-boot') || host.querySelector('iframe.giscus-frame')) {
+			return;
+		}
+
+		const script = document.createElement('script');
+		script.className = 'giscus-boot';
+		script.src = 'https://giscus.app/client.js';
+		script.async = true;
+		script.crossOrigin = 'anonymous';
+		script.setAttribute('data-repo', attrs.repo);
+		script.setAttribute('data-repo-id', attrs.repoId);
+		script.setAttribute('data-category', attrs.category);
+		script.setAttribute('data-category-id', attrs.categoryId);
+		script.setAttribute('data-mapping', attrs.mapping);
+		script.setAttribute('data-strict', attrs.strict);
+		script.setAttribute('data-reactions-enabled', attrs.reactionsEnabled);
+		script.setAttribute('data-emit-metadata', attrs.emitMetadata);
+		script.setAttribute('data-input-position', attrs.inputPosition);
+		script.setAttribute('data-theme', themeForSystem());
+		script.setAttribute('data-lang', attrs.lang);
+		host.appendChild(script);
+	}
+
+	function preloadSoon(fn: () => void) {
+		const ric = window.requestIdleCallback?.bind(window);
+		if (ric) {
+			ric(() => fn(), { timeout: 1500 });
+			return;
+		}
+		window.setTimeout(fn, 200);
+	}
+
+	function bindComments() {
+		const root = document.querySelector<HTMLElement>('.comments[data-giscus]');
+		if (!root || root.dataset.bound === '1') return;
+		root.dataset.bound = '1';
+
+		const entry = root.querySelector<HTMLButtonElement>('.entry');
+		const panel = root.querySelector<HTMLElement>('.panel');
+		const host = root.querySelector('.giscus');
+		if (!entry || !panel || !host) return;
+
+		let attrs: Record<string, string>;
+		try {
+			attrs = JSON.parse(root.dataset.giscus || '{}');
+		} catch {
+			return;
+		}
+
+		// 进入页面后空闲时预加载，展开时只需显示
+		preloadSoon(() => mountGiscus(host, attrs));
+
+		entry.addEventListener('click', () => {
+			const open = entry.getAttribute('aria-expanded') === 'true';
+
+			if (open) {
+				entry.setAttribute('aria-expanded', 'false');
+				entry.setAttribute('aria-label', '展开评论');
+				root.classList.remove('is-open');
+				panel.setAttribute('aria-hidden', 'true');
+				panel.inert = true;
+				return;
+			}
+
+			// 若预加载尚未完成，点击时立刻补载
+			mountGiscus(host, attrs);
+			entry.setAttribute('aria-expanded', 'true');
+			entry.setAttribute('aria-label', '收起评论');
+			panel.setAttribute('aria-hidden', 'false');
+			panel.inert = false;
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => root.classList.add('is-open'));
+			});
+		});
+	}
+
+	document.addEventListener('astro:page-load', () => {
+		document.querySelectorAll<HTMLElement>('.comments[data-giscus]').forEach((el) => {
+			delete el.dataset.bound;
+		});
+		bindComments();
+	});
+</script>
+
 <style>
-	.giscus-wrap {
-		margin-top: 3em;
-		padding-top: 1.75em;
+	.comments {
+		margin-top: 3rem;
+		padding-top: 1.75rem;
 		border-top: 1px solid var(--line);
+	}
+
+	.entry {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		margin: 0;
+		padding: 0;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		background: transparent;
+		color: var(--fg);
+		cursor: pointer;
+		transition:
+			opacity 0.2s ease,
+			border-color 0.2s ease,
+			transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.entry:hover {
+		opacity: 0.7;
+	}
+
+	.comments.is-open .entry {
+		border-color: var(--fg);
+	}
+
+	.icon {
+		display: block;
+		flex-shrink: 0;
+	}
+
+	.icon-close {
+		display: none;
+	}
+
+	.comments.is-open .icon-open {
+		display: none;
+	}
+
+	.comments.is-open .icon-close {
+		display: block;
+	}
+
+	.panel {
+		display: grid;
+		grid-template-rows: 0fr;
+		opacity: 0;
+		pointer-events: none;
+		/* 保留可布局宽度，让 iframe 能提前加载；高度收起即可 */
+		visibility: hidden;
+		transition:
+			grid-template-rows 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 0.5s ease,
+			visibility 0s linear 0.5s;
+	}
+
+	.comments.is-open .panel {
+		grid-template-rows: 1fr;
+		opacity: 1;
+		pointer-events: auto;
+		visibility: visible;
+		transition:
+			grid-template-rows 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 0.5s ease,
+			visibility 0s linear 0s;
+	}
+
+	.panel-inner {
+		overflow: hidden;
+		min-height: 0;
+	}
+
+	.giscus {
+		/* 预加载时给 iframe 足够宽度；高度由 giscus 自己写 */
+		padding-top: 1.25rem;
+		width: 100%;
+		min-height: 1px;
+	}
+
+	.giscus :global(.giscus-frame) {
+		width: 100%;
+		border: none;
+		color-scheme: light dark;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.panel,
+		.entry {
+			transition: none;
+		}
 	}
 </style>

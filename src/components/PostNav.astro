@@ -1,0 +1,98 @@
+---
+interface Neighbor {
+	href: string;
+	title: string;
+}
+
+interface Props {
+	prev?: Neighbor;
+	next?: Neighbor;
+}
+
+const { prev, next } = Astro.props;
+---
+
+{
+	(prev || next) && (
+		<nav class="post-nav" aria-label="相邻文章">
+			{prev ? (
+				<a class="nav-item prev" href={prev.href} data-astro-transition="back">
+					<span class="label">上一篇</span>
+					<span class="title">{prev.title}</span>
+				</a>
+			) : (
+				<span class="nav-item placeholder" />
+			)}
+			{next ? (
+				<a class="nav-item next" href={next.href} data-astro-transition="forward">
+					<span class="label">下一篇</span>
+					<span class="title">{next.title}</span>
+				</a>
+			) : (
+				<span class="nav-item placeholder" />
+			)}
+		</nav>
+	)
+}
+
+<style>
+	.post-nav {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		margin: 3rem 0 0;
+		padding-top: 1.75rem;
+		border-top: 1px solid var(--line);
+	}
+
+	.nav-item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding: 0.85rem 0;
+		text-decoration: none;
+		color: inherit;
+		min-width: 0;
+		transition: opacity 0.2s ease;
+	}
+
+	.nav-item.placeholder {
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+	.nav-item.next {
+		text-align: right;
+		align-items: flex-end;
+	}
+
+	.label {
+		font-size: 0.875em;
+		color: var(--muted);
+	}
+
+	.title {
+		font-weight: 600;
+		line-height: 1.45;
+		max-width: 16em;
+	}
+
+	.nav-item:hover {
+		opacity: 0.55;
+	}
+
+	@media (max-width: 640px) {
+		.post-nav {
+			grid-template-columns: 1fr;
+		}
+
+		.nav-item.next {
+			text-align: left;
+			align-items: flex-start;
+		}
+
+		.nav-item.placeholder {
+			display: none;
+		}
+	}
+</style>

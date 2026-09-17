@@ -1,20 +1,14 @@
 ---
 import { SITE_TITLE } from '../consts';
 import { withBase } from '../lib/paths';
-import HeaderLink from './HeaderLink.astro';
 ---
 
-<header>
+<header transition:persist="site-header">
 	<nav>
 		<a class="brand" href={withBase()}>
-			<img class="mark" src={withBase('favicon.svg')} width="22" height="22" alt="" />
-			<span>{SITE_TITLE}</span>
+			<img class="mark" src={withBase('favicon.svg')} width="32" height="32" alt="" />
+			<span class="name">{SITE_TITLE}</span>
 		</a>
-		<div class="nav-links">
-			<HeaderLink href="/">首页</HeaderLink>
-			<HeaderLink href="/blog">文章</HeaderLink>
-			<HeaderLink href="/about">关于</HeaderLink>
-		</div>
 	</nav>
 </header>
 
@@ -26,62 +20,41 @@ import HeaderLink from './HeaderLink.astro';
 	nav {
 		width: min(var(--wide), calc(100% - 3rem));
 		margin: 0 auto;
-		padding: 1.35rem 0;
+		padding: 1.25rem 0;
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		gap: 1.5rem;
 	}
 
 	.brand {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.55rem;
-		font-family: 'Songti SC', 'Noto Serif SC', Georgia, serif;
-		font-size: 1.2rem;
-		font-weight: 600;
-		letter-spacing: -0.02em;
+		gap: 1rem;
 		text-decoration: none;
 		color: var(--fg);
 	}
 
 	.brand:hover {
-		opacity: 1;
+		opacity: 0.55;
 	}
 
 	.mark {
 		display: block;
-		width: 22px;
-		height: 22px;
+		width: 32px;
+		height: 32px;
 		flex-shrink: 0;
 	}
 
-	.nav-links {
-		display: flex;
-		gap: 1.5rem;
-	}
-
-	.nav-links :global(a) {
-		text-decoration: none;
-		color: var(--fg-2);
-		font-size: 0.92rem;
-		letter-spacing: 0.01em;
-	}
-
-	.nav-links :global(a:hover),
-	.nav-links :global(a.active) {
-		color: var(--fg);
-		opacity: 1;
+	.name {
+		font-size: 1.15em;
+		font-weight: 600;
+		letter-spacing: 0;
+		line-height: 1;
 	}
 
 	@media (max-width: 640px) {
 		nav {
 			width: min(100% - 2rem, var(--wide));
-			padding: 1.1rem 0;
-		}
-
-		.nav-links {
-			gap: 1rem;
+			padding: 1rem 0;
 		}
 	}
 </style>

@@ -1,24 +1,112 @@
 ---
+import { SITE_AUTHOR } from '../consts';
+
 const year = new Date().getFullYear();
 ---
 
 <footer>
-	<p>© {year} fengshihao</p>
+	<p class="meta">
+		<span>© {year} {SITE_AUTHOR}</span>
+		<span class="sep" aria-hidden="true">·</span>
+		<span>
+			本站 <span id="vercount_value_site_pv">-</span>
+		</span>
+		<span class="sep" aria-hidden="true">·</span>
+		<span>
+			本页 <span id="vercount_value_page_pv">-</span>
+		</span>
+	</p>
 </footer>
+
+{/* 自管请求，兼容 Astro View Transitions；不依赖 Vercount 一次性脚本 */}
+<script>
+	const API = 'https://events.vercount.one/api/v2/log';
+	const STORAGE_KEY = 'visitorCountData';
+
+	function uvCookieName() {
+		const host = window.location.host || 'unknown-host';
+		return `vercount_uv_${host.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+	}
+
+	function hasUvCookie() {
+		return document.cookie.split('; ').some((c) => c.startsWith(`${uvCookieName()}=`));
+	}
+
+	function markUvCookie() {
+		document.cookie = `${uvCookieName()}=1; path=/; max-age=31536000; samesite=lax`;
+	}
+
+	function applyCounts(data: { site_pv?: number; page_pv?: number; site_uv?: number }) {
+		const site = document.getElementById('vercount_value_site_pv');
+		const page = document.getElementById('vercount_value_page_pv');
+		if (site && data.site_pv != null) site.textContent = String(data.site_pv);
+		if (page && data.page_pv != null) page.textContent = String(data.page_pv);
+	}
+
+	async function recordVisit() {
+		const url = window.location.href;
+		if (!url.startsWith('http')) return;
+
+		const isNewUv = !hasUvCookie();
+		if (isNewUv) markUvCookie();
+
+		try {
+			const res = await fetch(API, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ url, isNewUv }),
+			});
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+			const json = await res.json();
+			const data = json?.data ?? json;
+			const counts = {
+				site_pv: Number(data?.site_pv ?? 0),
+				page_pv: Number(data?.page_pv ?? 0),
+				site_uv: Number(data?.site_uv ?? 0),
+			};
+			applyCounts(counts);
+			try {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(counts));
+			} catch {
+				/* ignore */
+			}
+		} catch {
+			try {
+				const cached = localStorage.getItem(STORAGE_KEY);
+				if (cached) applyCounts(JSON.parse(cached));
+			} catch {
+				/* ignore */
+			}
+		}
+	}
+
+	document.addEventListener('astro:page-load', () => {
+		recordVisit();
+	});
+</script>
 
 <style>
 	footer {
+		flex-shrink: 0;
 		width: min(var(--max), calc(100% - 3rem));
 		margin: 0 auto;
-		padding: 0 0 3.5rem;
-		color: var(--fg-3);
-		font-size: 0.85rem;
+		padding: 0 0 3rem;
+		color: var(--muted);
+		font-size: 0.875em;
 	}
 
-	p {
+	.meta {
 		margin: 0;
-		padding-top: 2rem;
+		padding-top: 1.75rem;
 		border-top: 1px solid var(--line);
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem 0.55rem;
+		align-items: baseline;
+	}
+
+	.sep {
+		opacity: 0.55;
 	}
 
 	@media (max-width: 640px) {
