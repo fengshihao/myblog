@@ -6,7 +6,10 @@ import HeaderLink from './HeaderLink.astro';
 
 <header>
 	<nav>
-		<a class="brand" href={withBase()}>{SITE_TITLE}</a>
+		<a class="brand" href={withBase()}>
+			<img class="mark" src={withBase('favicon.svg')} width="22" height="22" alt="" />
+			<span>{SITE_TITLE}</span>
+		</a>
 		<div class="nav-links">
 			<HeaderLink href="/">首页</HeaderLink>
 			<HeaderLink href="/blog">文章</HeaderLink>
@@ -25,12 +28,15 @@ import HeaderLink from './HeaderLink.astro';
 		margin: 0 auto;
 		padding: 1.35rem 0;
 		display: flex;
-		align-items: baseline;
+		align-items: center;
 		justify-content: space-between;
 		gap: 1.5rem;
 	}
 
 	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
 		font-family: 'Songti SC', 'Noto Serif SC', Georgia, serif;
 		font-size: 1.2rem;
 		font-weight: 600;
@@ -41,6 +47,13 @@ import HeaderLink from './HeaderLink.astro';
 
 	.brand:hover {
 		opacity: 1;
+	}
+
+	.mark {
+		display: block;
+		width: 22px;
+		height: 22px;
+		flex-shrink: 0;
 	}
 
 	.nav-links {
