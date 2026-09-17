@@ -1,15 +1,15 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
+import { withBase } from '../lib/paths';
 
 type Props = HTMLAttributes<'a'>;
 
 const { href, class: className, ...props } = Astro.props;
-const base = import.meta.env.BASE_URL;
 const normalizedHref = typeof href === 'string' ? href : '/';
-const path = normalizedHref.startsWith('/') ? normalizedHref.slice(1) : normalizedHref;
-const resolvedHref = normalizedHref === '/' ? base : `${base}${path}`;
+const resolvedHref = withBase(normalizedHref === '/' ? '' : normalizedHref);
 
-const pathname = Astro.url.pathname.replace(base, '/').replace(/\/$/, '') || '/';
+const base = withBase();
+const pathname = Astro.url.pathname.replace(base.replace(/\/$/, ''), '').replace(/\/$/, '') || '/';
 const hrefPath = normalizedHref.replace(/\/$/, '') || '/';
 const subpath = pathname.match(/[^\/]+/g);
 const isActive = hrefPath === pathname || hrefPath === '/' + (subpath?.[0] || '');
@@ -18,13 +18,3 @@ const isActive = hrefPath === pathname || hrefPath === '/' + (subpath?.[0] || ''
 <a href={resolvedHref} class:list={[className, { active: isActive }]} {...props}>
 	<slot />
 </a>
-<style>
-	a {
-		display: inline-block;
-		text-decoration: none;
-	}
-	a.active {
-		font-weight: bolder;
-		text-decoration: underline;
-	}
-</style>

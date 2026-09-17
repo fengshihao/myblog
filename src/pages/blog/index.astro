@@ -1,11 +1,11 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { withBase } from '../../lib/paths';
 
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -13,102 +13,85 @@ const posts = (await getCollection('blog')).sort(
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
-		</style>
+		<BaseHead title={`文章 · ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
 	</head>
 	<body>
 		<Header />
 		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`${import.meta.env.BASE_URL}blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
-									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
-			</section>
+			<header class="page-head">
+				<h1>文章</h1>
+			</header>
+			<div class="posts">
+				{
+					posts.map((post) => (
+						<a class="item" href={withBase(`blog/${post.id}/`)}>
+							<span class="date">
+								<FormattedDate date={post.data.pubDate} />
+							</span>
+							<span class="title">{post.data.title}</span>
+							<span class="summary">{post.data.description}</span>
+						</a>
+					))
+				}
+			</div>
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	.page-head {
+		margin-bottom: 2.5rem;
+	}
+
+	.page-head h1 {
+		margin: 0;
+	}
+
+	.posts {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.item {
+		display: grid;
+		gap: 0.35rem;
+		padding: 1.6rem 0;
+		border-bottom: 1px solid var(--line);
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.item:first-child {
+		border-top: 1px solid var(--line);
+	}
+
+	.item:hover {
+		opacity: 1;
+	}
+
+	.item:hover .title {
+		opacity: 0.55;
+	}
+
+	.date {
+		color: var(--fg-3);
+		font-size: 0.82rem;
+	}
+
+	.title {
+		font-family: 'Songti SC', 'Noto Serif SC', Georgia, serif;
+		font-size: 1.4rem;
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		transition: opacity 0.15s ease;
+	}
+
+	.summary {
+		color: var(--fg-2);
+		font-size: 0.98rem;
+		max-width: 36em;
+	}
+</style>

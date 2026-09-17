@@ -1,0 +1,35 @@
+---
+/**
+ * 将 Markdown 中的 ```mermaid 代码块在客户端渲染成流程图。
+ * 构建期仍是静态 HTML，不依赖编辑器。
+ */
+---
+
+<script>
+	async function renderMermaid() {
+		const blocks = Array.from(document.querySelectorAll('pre > code.language-mermaid'));
+		if (!blocks.length) return;
+
+		const mermaid = (await import('mermaid')).default;
+		mermaid.initialize({
+			startOnLoad: false,
+			theme: 'neutral',
+			securityLevel: 'loose',
+			fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+		});
+
+		for (const [index, code] of blocks.entries()) {
+			const pre = code.parentElement;
+			if (!pre) continue;
+			const container = document.createElement('div');
+			container.className = 'mermaid';
+			container.id = `mermaid-${index}`;
+			container.textContent = code.textContent || '';
+			pre.replaceWith(container);
+		}
+
+		await mermaid.run({ querySelector: '.mermaid' });
+	}
+
+	renderMermaid();
+</script>

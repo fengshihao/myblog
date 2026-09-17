@@ -1,8 +1,15 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { withBase } from '../lib/paths';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
 ---
 
 <!doctype html>
@@ -13,17 +20,92 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 	<body>
 		<Header />
 		<main>
-			<h1>你好</h1>
-			<p>{SITE_DESCRIPTION}</p>
-			<p>
-				站点由 <a href="https://astro.build/">Astro</a> 构建，托管在 GitHub Pages；评论使用
-				<a href="https://giscus.app/zh-CN">Giscus</a>。
-			</p>
-			<p>
-				去看 <a href={`${import.meta.env.BASE_URL}blog`}>博客列表</a>，或读一下
-				<a href={`${import.meta.env.BASE_URL}about`}>关于</a>。
-			</p>
+			<section class="intro">
+				<h1>{SITE_TITLE}</h1>
+				<p>{SITE_DESCRIPTION}</p>
+			</section>
+
+			<section class="posts" aria-label="文章列表">
+				{
+					posts.map((post) => (
+						<a class="item" href={withBase(`blog/${post.id}/`)}>
+							<span class="date">
+								<FormattedDate date={post.data.pubDate} />
+							</span>
+							<span class="title">{post.data.title}</span>
+							<span class="summary">{post.data.description}</span>
+						</a>
+					))
+				}
+			</section>
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	.intro {
+		margin-bottom: 3.5rem;
+		padding-bottom: 2.5rem;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.intro h1 {
+		margin: 0 0 0.75rem;
+	}
+
+	.intro p {
+		margin: 0;
+		max-width: 28em;
+		color: var(--fg-2);
+		font-size: 1.1rem;
+	}
+
+	.posts {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.item {
+		display: grid;
+		gap: 0.35rem;
+		padding: 1.6rem 0;
+		border-bottom: 1px solid var(--line);
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.item:first-child {
+		padding-top: 0;
+	}
+
+	.item:hover {
+		opacity: 1;
+	}
+
+	.item:hover .title {
+		opacity: 0.55;
+	}
+
+	.date {
+		color: var(--fg-3);
+		font-size: 0.82rem;
+		letter-spacing: 0.03em;
+	}
+
+	.title {
+		font-family: 'Songti SC', 'Noto Serif SC', Georgia, serif;
+		font-size: 1.45rem;
+		font-weight: 600;
+		line-height: 1.35;
+		letter-spacing: -0.02em;
+		transition: opacity 0.15s ease;
+	}
+
+	.summary {
+		color: var(--fg-2);
+		font-size: 0.98rem;
+		line-height: 1.6;
+		max-width: 36em;
+	}
+</style>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" fill="none">
+  <rect width="960" height="420" fill="#FCFCFB"/>
+  <rect x="48" y="56" width="200" height="88" rx="4" stroke="#141414" stroke-width="1.5"/>
+  <text x="148" y="108" text-anchor="middle" fill="#141414" font-family="system-ui,sans-serif" font-size="18">Markdown</text>
+  <path d="M268 100H372" stroke="#141414" stroke-width="1.5"/>
+  <polygon points="372,100 362,95 362,105" fill="#141414"/>
+  <rect x="380" y="56" width="200" height="88" rx="4" stroke="#141414" stroke-width="1.5"/>
+  <text x="480" y="108" text-anchor="middle" fill="#141414" font-family="system-ui,sans-serif" font-size="18">Build</text>
+  <path d="M600 100H704" stroke="#141414" stroke-width="1.5"/>
+  <polygon points="704,100 694,95 694,105" fill="#141414"/>
+  <rect x="712" y="56" width="200" height="88" rx="4" stroke="#141414" stroke-width="1.5"/>
+  <text x="812" y="108" text-anchor="middle" fill="#141414" font-family="system-ui,sans-serif" font-size="18">Pages</text>
+  <rect x="180" y="220" width="600" height="140" rx="4" stroke="#8A8A8A" stroke-width="1"/>
+  <text x="480" y="285" text-anchor="middle" fill="#5C5C5C" font-family="system-ui,sans-serif" font-size="16">Y‡цHTML · CSS · юG · RSS</text>
+  <text x="480" y="318" text-anchor="middle" fill="#8A8A8A" font-family="system-ui,sans-serif" font-size="14">Ў	8{пЫ</text>
+</svg>
