@@ -1,0 +1,50 @@
+---
+import { GISCUS, isGiscusConfigured } from '../config/giscus';
+---
+
+{
+	isGiscusConfigured ? (
+		<section class="giscus-wrap" aria-label="评论">
+			<script
+				src="https://giscus.app/client.js"
+				data-repo={GISCUS.repo}
+				data-repo-id={GISCUS.repoId}
+				data-category={GISCUS.category}
+				data-category-id={GISCUS.categoryId}
+				data-mapping={GISCUS.mapping}
+				data-strict={GISCUS.strict}
+				data-reactions-enabled={GISCUS.reactionsEnabled}
+				data-emit-metadata={GISCUS.emitMetadata}
+				data-input-position={GISCUS.inputPosition}
+				data-theme={GISCUS.theme}
+				data-lang={GISCUS.lang}
+				data-loading="lazy"
+				crossorigin="anonymous"
+				async
+			/>
+		</section>
+	) : (
+		<section class="giscus-wrap giscus-placeholder" aria-label="评论未配置">
+			<p>
+				评论未启用。请按 <code>src/config/giscus.ts</code> 中的说明配置 Giscus（仓库需
+				Public + Discussions，并填写 repoId / categoryId）。
+			</p>
+		</section>
+	)
+}
+
+<style>
+	.giscus-wrap {
+		margin-top: 3em;
+		padding-top: 1.5em;
+		border-top: 1px solid rgba(var(--gray), 12%);
+	}
+	.giscus-placeholder p {
+		color: rgb(var(--gray));
+		font-size: 0.95em;
+		line-height: 1.6;
+	}
+	.giscus-placeholder code {
+		font-size: 0.9em;
+	}
+</style>

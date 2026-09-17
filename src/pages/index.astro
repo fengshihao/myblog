@@ -1,0 +1,29 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>你好</h1>
+			<p>{SITE_DESCRIPTION}</p>
+			<p>
+				站点由 <a href="https://astro.build/">Astro</a> 构建，托管在 GitHub Pages；评论使用
+				<a href="https://giscus.app/zh-CN">Giscus</a>。
+			</p>
+			<p>
+				去看 <a href={`${import.meta.env.BASE_URL}blog`}>博客列表</a>，或读一下
+				<a href={`${import.meta.env.BASE_URL}about`}>关于</a>。
+			</p>
+		</main>
+		<Footer />
+	</body>
+</html>
