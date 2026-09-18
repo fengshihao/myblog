@@ -62,12 +62,21 @@ const giscusAttrs = isGiscusConfigured
 <script>
 	function themeForSystem() {
 		return window.matchMedia('(prefers-color-scheme: dark)').matches
-			? 'transparent_dark'
+			? 'noborder_gray'
 			: 'noborder_light';
+	}
+
+	function syncGiscusTheme(host: Element) {
+		const iframe = host.querySelector<HTMLIFrameElement>('iframe.giscus-frame');
+		iframe?.contentWindow?.postMessage(
+			{ giscus: { setConfig: { theme: themeForSystem() } } },
+			'https://giscus.app',
+		);
 	}
 
 	function mountGiscus(host: Element, attrs: Record<string, string>) {
 		if (host.querySelector('script.giscus-boot') || host.querySelector('iframe.giscus-frame')) {
+			syncGiscusTheme(host);
 			return;
 		}
 
@@ -265,16 +274,20 @@ const giscusAttrs = isGiscusConfigured
 		z-index: 56;
 		display: flex;
 		flex-direction: column;
-		width: min(26rem, calc(100vw - 2.5rem));
-		height: min(32rem, calc(100dvh - 7rem));
+		width: min(31.2rem, calc(100vw - 2.5rem));
+		/* 高度跟内容走，避免 0 评论时底部大片空区 */
+		height: auto;
+		max-height: min(22rem, calc(100dvh - 7rem));
 		padding: 0;
 		overflow: hidden;
-		background: var(--bg);
-		border: 1px solid var(--line);
+		background: color-mix(in srgb, var(--bg) 78%, transparent);
+		border: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
 		border-radius: 14px;
 		box-shadow:
-			0 16px 48px color-mix(in srgb, var(--fg) 16%, transparent),
-			0 4px 12px color-mix(in srgb, var(--fg) 6%, transparent);
+			0 12px 36px color-mix(in srgb, var(--fg) 10%, transparent),
+			0 2px 8px color-mix(in srgb, var(--fg) 4%, transparent);
+		-webkit-backdrop-filter: blur(16px) saturate(1.1);
+		backdrop-filter: blur(16px) saturate(1.1);
 		opacity: 0;
 		visibility: hidden;
 		pointer-events: none;
@@ -304,17 +317,20 @@ const giscusAttrs = isGiscusConfigured
 
 	.panel-head {
 		flex-shrink: 0;
-		padding: 0.9rem 1.1rem;
-		border-bottom: 1px solid var(--line);
+		padding: 0.75rem 1rem 0.15rem;
+		border: none;
+		background: transparent;
 		font-size: 0.875em;
 		color: var(--muted);
 	}
 
 	.panel-body {
-		flex: 1;
+		flex: 0 1 auto;
 		min-height: 0;
+		max-height: 100%;
 		overflow: auto;
-		padding: 0.75rem 1rem 1rem;
+		padding: 0.35rem 0.85rem 0.85rem;
+		background: transparent;
 	}
 
 	.giscus {
@@ -339,7 +355,7 @@ const giscusAttrs = isGiscusConfigured
 			left: 0.75rem;
 			bottom: 4.5rem;
 			width: auto;
-			height: min(70dvh, 28rem);
+			max-height: min(52dvh, 20rem);
 		}
 	}
 
