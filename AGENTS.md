@@ -12,6 +12,10 @@ Manage the background server with `astro dev stop`, `astro dev status`, and `ast
 
 Full documentation: https://docs.astro.build
 
+### Writing posts with Agent
+
+Project skill: `.cursor/skills/write-blog-log/` — polish drafts and publish Markdown posts after user confirmation. See README 「用 Cursor Agent 写日志」.
+
 Consult these guides before working on related tasks:
 
 - [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)

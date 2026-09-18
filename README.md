@@ -15,6 +15,16 @@ npm run dev
 
 在 `src/content/blog/` 新建 Markdown / MDX，填好 frontmatter（title、description、pubDate 等）。
 
+### 用 Cursor Agent 写日志（推荐）
+
+本仓库自带 Agent Skill：`.cursor/skills/write-blog-log/`。
+
+1. 用 Cursor 打开本仓库
+2. 对 Agent 说：把草稿润色成一篇日志，或「按写日志 skill 发布」
+3. Agent 会先给出润色预览；你回复「确认」后才会写入文件并（在你要求发布时）提交 / 推送
+
+其他人 fork 后也可直接复用该 skill；若改了内容目录或文风，编辑 skill 里的「本仓库约定」和 `style.md` 即可。
+
 ## 部署到 GitHub Pages
 
 1. 在 GitHub 创建公共仓库 `fengshihao/myblog`，并推送代码
