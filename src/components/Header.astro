@@ -1,20 +1,168 @@
 ---
+import { getCollection } from 'astro:content';
 import { SITE_TITLE } from '../consts';
 import { withBase } from '../lib/paths';
+import FormattedDate from './FormattedDate.astro';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const currentPath = Astro.url.pathname;
 ---
 
-<header transition:persist="site-header">
+<header
+	id="site-header"
+	class="site-header"
+	transition:name="site-header"
+	transition:animate="none"
+	transition:persist="site-header"
+>
 	<nav>
-		<a class="brand" href={withBase()}>
-			<img class="mark" src={withBase('favicon.svg')} width="32" height="32" alt="" />
-			<span class="name">{SITE_TITLE}</span>
-		</a>
+		<div class="brand">
+			<button
+				type="button"
+				class="mark-btn"
+				aria-expanded="false"
+				aria-controls="log-drawer"
+				aria-label="打开日志列表"
+				title="日志列表"
+			>
+				<img class="mark" src={withBase('favicon.svg')} width="36" height="36" alt="" />
+			</button>
+			<a class="name" href={withBase()}>{SITE_TITLE}</a>
+		</div>
 	</nav>
+
+	<aside class="log-drawer" id="log-drawer" aria-hidden="true" inert>
+		<div class="log-toolbar">
+			<span class="log-label">日志</span>
+		</div>
+		<ul class="log-list">
+			{
+				posts.map((post) => {
+					const href = withBase(`blog/${post.id}/`);
+					const active =
+						currentPath === href ||
+						currentPath === href.replace(/\/$/, '') ||
+						currentPath.endsWith(`/blog/${post.id}/`) ||
+						currentPath.endsWith(`/blog/${post.id}`);
+					return (
+						<li>
+							<a class:list={['log-item', { active }]} href={href} data-astro-transition="forward">
+								<span class="log-date">
+									<FormattedDate date={post.data.pubDate} />
+								</span>
+								<span class="log-title">{post.data.title}</span>
+							</a>
+						</li>
+					);
+				})
+			}
+		</ul>
+	</aside>
 </header>
 
+<script>
+	const STORAGE_KEY = 'log-menu-open';
+
+	function setOpen(header: HTMLElement, open: boolean) {
+		const btn = header.querySelector<HTMLButtonElement>('.mark-btn');
+		const drawer = header.querySelector<HTMLElement>('.log-drawer');
+		if (!btn || !drawer) return;
+
+		btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+		btn.setAttribute('aria-label', open ? '收起日志列表' : '打开日志列表');
+		drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+		drawer.inert = !open;
+
+		if (open) {
+			header.classList.remove('is-closing');
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => header.classList.add('is-open'));
+			});
+		} else {
+			header.classList.add('is-closing');
+			header.classList.remove('is-open');
+			const finish = () => {
+				if (header.classList.contains('is-open')) return;
+				header.classList.remove('is-closing');
+			};
+			drawer.addEventListener('transitionend', finish, { once: true });
+			window.setTimeout(finish, 480);
+		}
+
+		try {
+			sessionStorage.setItem(STORAGE_KEY, open ? '1' : '0');
+		} catch {
+			/* ignore */
+		}
+	}
+
+	function syncActiveLinks() {
+		const header = document.getElementById('site-header');
+		if (!header) return;
+		const path = window.location.pathname.replace(/\/$/, '') || '/';
+		header.querySelectorAll<HTMLAnchorElement>('.log-item').forEach((link) => {
+			const href = (link.getAttribute('href') || '').replace(/\/$/, '') || '/';
+			link.classList.toggle('active', href === path);
+		});
+	}
+
+	function bindHeader() {
+		const header = document.getElementById('site-header');
+		if (!header || header.dataset.menuBound === '1') return;
+		header.dataset.menuBound = '1';
+
+		const btn = header.querySelector<HTMLButtonElement>('.mark-btn');
+		const drawer = header.querySelector<HTMLElement>('.log-drawer');
+		btn?.addEventListener('click', (event) => {
+			event.stopPropagation();
+			setOpen(header, !header.classList.contains('is-open'));
+		});
+
+		drawer?.addEventListener('click', (event) => {
+			event.stopPropagation();
+		});
+
+		document.addEventListener('click', () => {
+			if (header.classList.contains('is-open')) {
+				setOpen(header, false);
+			}
+		});
+
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape' && header.classList.contains('is-open')) {
+				setOpen(header, false);
+			}
+		});
+	}
+
+	function restoreOpenState() {
+		const header = document.getElementById('site-header');
+		if (!header) return;
+		try {
+			if (sessionStorage.getItem(STORAGE_KEY) === '1') {
+				setOpen(header, true);
+			}
+		} catch {
+			/* ignore */
+		}
+	}
+
+	document.addEventListener('astro:page-load', () => {
+		bindHeader();
+		restoreOpenState();
+		syncActiveLinks();
+	});
+</script>
+
 <style>
-	header {
+	.site-header {
 		border-bottom: 1px solid var(--line);
+		background: var(--bg);
+		position: relative;
+		z-index: 40;
 	}
 
 	nav {
@@ -29,32 +177,140 @@ import { withBase } from '../lib/paths';
 		display: inline-flex;
 		align-items: center;
 		gap: 1rem;
-		text-decoration: none;
 		color: var(--fg);
 	}
 
-	.brand:hover {
-		opacity: 0.55;
+	.mark-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0;
+		padding: 0;
+		border: none;
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+		border-radius: 4px;
+		transition: opacity 0.15s ease;
+	}
+
+	.mark-btn:hover,
+	.site-header.is-open .mark-btn {
+		opacity: 0.7;
 	}
 
 	.mark {
 		display: block;
-		width: 32px;
-		height: 32px;
-		flex-shrink: 0;
+		width: 36px;
+		height: 36px;
 	}
 
 	.name {
-		font-size: 1.15em;
+		font-size: 1.5em;
 		font-weight: 600;
 		letter-spacing: 0;
-		line-height: 1;
+		line-height: 1.2;
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.name:hover {
+		opacity: 0.55;
+	}
+
+	.log-drawer {
+		position: fixed;
+		top: 0.85rem;
+		left: 0.85rem;
+		bottom: 0.85rem;
+		z-index: 50;
+		display: flex;
+		flex-direction: column;
+		width: min(19rem, calc(100vw - 1.7rem));
+		height: auto;
+		max-height: calc(100dvh - 1.7rem);
+		padding: 1.15rem 1.15rem 1.35rem;
+		background: var(--bg);
+		border: 1px solid var(--line);
+		border-radius: 14px;
+		box-shadow:
+			0 12px 40px color-mix(in srgb, var(--fg) 14%, transparent),
+			0 2px 8px color-mix(in srgb, var(--fg) 6%, transparent);
+		transform: translateX(calc(-100% - 1.25rem));
+		transition: transform 0.55s var(--ease-spring);
+		will-change: transform;
+		overflow: auto;
+	}
+
+	.site-header.is-open .log-drawer {
+		transform: translateX(0);
+	}
+
+	.site-header.is-closing .log-drawer {
+		transition-duration: 0.4s;
+		transition-timing-function: var(--ease-spring-exit);
+		transform: translateX(calc(-100% - 1.25rem));
+	}
+
+	.log-toolbar {
+		margin-bottom: 1rem;
+		padding-bottom: 0.85rem;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.log-label {
+		font-size: 0.875em;
+		color: var(--muted);
+	}
+
+	.log-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.log-item {
+		display: grid;
+		gap: 0.15rem;
+		padding: 0.85rem 0;
+		border-bottom: 1px solid var(--line);
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.log-item:hover {
+		opacity: 0.55;
+	}
+
+	.log-item.active {
+		opacity: 1;
+	}
+
+	.log-item.active .log-title {
+		font-weight: 600;
+	}
+
+	.log-date {
+		font-size: 0.875em;
+		color: var(--muted);
+	}
+
+	.log-title {
+		line-height: 1.45;
 	}
 
 	@media (max-width: 640px) {
 		nav {
 			width: min(100% - 2rem, var(--wide));
 			padding: 1rem 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.log-drawer {
+			transition: none;
 		}
 	}
 </style>

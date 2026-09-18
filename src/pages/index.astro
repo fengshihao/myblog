@@ -19,7 +19,7 @@ const posts = (await getCollection('blog')).sort(
 	</head>
 	<body>
 		<Header />
-		<main>
+		<main transition:name="page-main">
 			<h1 class="sr-only">{SITE_TITLE}</h1>
 			<section class="posts" aria-label="文章列表">
 				{

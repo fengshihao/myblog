@@ -24,11 +24,10 @@ const { title, description, pubDate, updatedDate, heroImage, prev, next } = Astr
 	</head>
 	<body>
 		<Header />
-		<main>
+		<main transition:name="page-main">
 			<article>
 				<header class="head">
 					<h1>{title}</h1>
-					{description && <p class="desc">{description}</p>}
 					<p class="meta">
 						<FormattedDate date={pubDate} />
 						{
@@ -72,12 +71,6 @@ const { title, description, pubDate, updatedDate, heroImage, prev, next } = Astr
 
 	h1 {
 		margin: 0;
-	}
-
-	.desc {
-		margin: 0.75rem 0 0;
-		color: var(--muted);
-		max-width: 34em;
 	}
 
 	.meta {

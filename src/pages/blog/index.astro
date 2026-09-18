@@ -19,7 +19,7 @@ const posts = (await getCollection('blog')).sort(
 	</head>
 	<body>
 		<Header />
-		<main>
+		<main transition:name="page-main">
 			<header class="page-head">
 				<h1>文章</h1>
 			</header>

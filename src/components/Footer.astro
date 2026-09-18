@@ -4,7 +4,7 @@ import { SITE_AUTHOR } from '../consts';
 const year = new Date().getFullYear();
 ---
 
-<footer>
+<footer transition:name="site-footer" transition:animate="none">
 	<p class="meta">
 		<span>© {year} {SITE_AUTHOR}</span>
 		<span class="sep" aria-hidden="true">·</span>

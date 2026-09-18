@@ -7,8 +7,8 @@
 	--line: #e8e8e8;
 	--code-bg: #f3f3f2;
 	--surface: #ffffff;
-	--max: 42rem;
-	--wide: 52rem;
+	--max: 50.4rem;
+	--wide: 58rem;
 	--font:
 		Georgia,
 		'Times New Roman',
@@ -17,6 +17,10 @@
 		'Source Han Serif SC',
 		serif;
 	--font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	/* 轻阻尼：几乎无过冲，只保留柔和收束 */
+	--ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+	--ease-spring-soft: cubic-bezier(0.25, 0.9, 0.35, 1);
+	--ease-spring-exit: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -63,78 +67,95 @@ main {
 	padding: 2.25rem 0 4rem;
 }
 
-/* 页面切换 */
+/* 页面切换：仅正文区动效，顶栏/页脚静止 */
 @keyframes vt-leave {
 	to {
 		opacity: 0;
-		filter: blur(6px);
-		transform: translateY(-10px);
+		transform: translateY(-8px);
 	}
 }
 
 @keyframes vt-enter {
 	from {
 		opacity: 0;
-		filter: blur(6px);
-		transform: translateY(12px);
+		transform: translateY(10px);
 	}
 }
 
 @keyframes vt-leave-back {
 	to {
 		opacity: 0;
-		transform: translateX(12%);
+		transform: translateX(8%);
 	}
 }
 
 @keyframes vt-enter-back {
 	from {
 		opacity: 0;
-		transform: translateX(-10%);
+		transform: translateX(-8%);
 	}
 }
 
 @keyframes vt-leave-forward {
 	to {
 		opacity: 0;
-		transform: translateX(-12%);
+		transform: translateX(-8%);
 	}
 }
 
 @keyframes vt-enter-forward {
 	from {
 		opacity: 0;
-		transform: translateX(10%);
+		transform: translateX(8%);
 	}
 }
 
-::view-transition-old(root) {
-	animation: vt-leave 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
+::view-transition-old(root),
 ::view-transition-new(root) {
-	animation: vt-enter 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+	animation: none;
+	mix-blend-mode: normal;
 }
 
-html[data-astro-transition='back']::view-transition-old(root) {
-	animation: vt-leave-back 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+::view-transition-group(site-header),
+::view-transition-old(site-header),
+::view-transition-new(site-header),
+::view-transition-group(site-footer),
+::view-transition-old(site-footer),
+::view-transition-new(site-footer) {
+	animation: none !important;
 }
 
-html[data-astro-transition='back']::view-transition-new(root) {
-	animation: vt-enter-back 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+::view-transition-group(page-main) {
+	animation: none;
 }
 
-html[data-astro-transition='forward']::view-transition-old(root) {
-	animation: vt-leave-forward 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+::view-transition-old(page-main) {
+	animation: vt-leave 0.38s var(--ease-spring-exit) both;
 }
 
-html[data-astro-transition='forward']::view-transition-new(root) {
-	animation: vt-enter-forward 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+::view-transition-new(page-main) {
+	animation: vt-enter 0.55s var(--ease-spring) both;
+}
+
+html[data-astro-transition='back']::view-transition-old(page-main) {
+	animation: vt-leave-back 0.38s var(--ease-spring-exit) both;
+}
+
+html[data-astro-transition='back']::view-transition-new(page-main) {
+	animation: vt-enter-back 0.55s var(--ease-spring) both;
+}
+
+html[data-astro-transition='forward']::view-transition-old(page-main) {
+	animation: vt-leave-forward 0.38s var(--ease-spring-exit) both;
+}
+
+html[data-astro-transition='forward']::view-transition-new(page-main) {
+	animation: vt-enter-forward 0.55s var(--ease-spring) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	::view-transition-old(root),
-	::view-transition-new(root) {
+	::view-transition-old(page-main),
+	::view-transition-new(page-main) {
 		animation: none !important;
 	}
 }
@@ -276,6 +297,11 @@ th {
 	color: var(--muted);
 	font-weight: 600;
 	font-size: 0.875em;
+}
+
+.prose {
+	font-size: 1.14em;
+	letter-spacing: 0.15em;
 }
 
 .prose > :first-child {
