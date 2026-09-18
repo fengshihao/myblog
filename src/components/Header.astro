@@ -159,16 +159,17 @@ const currentPath = Astro.url.pathname;
 
 <style>
 	.site-header {
-		border-bottom: 1px solid var(--line);
-		background: var(--bg);
-		position: relative;
+		border-bottom: none;
+		background: var(--header-bg);
+		position: sticky;
+		top: 0;
 		z-index: 40;
 	}
 
 	nav {
 		width: min(var(--wide), calc(100% - 3rem));
 		margin: 0 auto;
-		padding: 1.25rem 0;
+		padding: 1.35rem 0 1.45rem;
 		display: flex;
 		align-items: center;
 	}

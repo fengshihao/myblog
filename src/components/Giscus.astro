@@ -49,9 +49,9 @@ const giscusAttrs = isGiscusConfigured
 				</svg>
 			</button>
 
-			{/* 不用 hidden/display:none，否则 iframe 会被浏览器推迟加载 */}
 			<div class="panel" id="comments-panel" aria-hidden="true" inert>
-				<div class="panel-inner">
+				<div class="panel-head">留言</div>
+				<div class="panel-body">
 					<div class="giscus" />
 				</div>
 			</div>
@@ -99,6 +99,45 @@ const giscusAttrs = isGiscusConfigured
 		window.setTimeout(fn, 200);
 	}
 
+	function setOpen(root: HTMLElement, open: boolean) {
+		const entry = root.querySelector<HTMLButtonElement>('.entry');
+		const panel = root.querySelector<HTMLElement>('.panel');
+		const host = root.querySelector('.giscus');
+		if (!entry || !panel || !host) return;
+
+		let attrs: Record<string, string>;
+		try {
+			attrs = JSON.parse(root.dataset.giscus || '{}');
+		} catch {
+			return;
+		}
+
+		if (open) {
+			mountGiscus(host, attrs);
+			entry.setAttribute('aria-expanded', 'true');
+			entry.setAttribute('aria-label', '收起评论');
+			panel.setAttribute('aria-hidden', 'false');
+			panel.inert = false;
+			root.classList.remove('is-closing');
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => root.classList.add('is-open'));
+			});
+			return;
+		}
+
+		entry.setAttribute('aria-expanded', 'false');
+		entry.setAttribute('aria-label', '展开评论');
+		panel.setAttribute('aria-hidden', 'true');
+		panel.inert = true;
+		root.classList.add('is-closing');
+		root.classList.remove('is-open');
+		const finish = () => {
+			if (!root.classList.contains('is-open')) root.classList.remove('is-closing');
+		};
+		panel.addEventListener('transitionend', finish, { once: true });
+		window.setTimeout(finish, 500);
+	}
+
 	function bindComments() {
 		const root = document.querySelector<HTMLElement>('.comments[data-giscus]');
 		if (!root || root.dataset.bound === '1') return;
@@ -116,69 +155,84 @@ const giscusAttrs = isGiscusConfigured
 			return;
 		}
 
-		// 进入页面后空闲时预加载，展开时只需显示
 		preloadSoon(() => mountGiscus(host, attrs));
 
-		entry.addEventListener('click', () => {
-			const open = entry.getAttribute('aria-expanded') === 'true';
+		entry.addEventListener('click', (event) => {
+			event.stopPropagation();
+			const open = root.classList.contains('is-open');
+			setOpen(root, !open);
+		});
 
-			if (open) {
-				entry.setAttribute('aria-expanded', 'false');
-				entry.setAttribute('aria-label', '展开评论');
-				root.classList.remove('is-open');
-				panel.setAttribute('aria-hidden', 'true');
-				panel.inert = true;
-				return;
-			}
+		panel.addEventListener('click', (event) => {
+			event.stopPropagation();
+		});
+	}
 
-			// 若预加载尚未完成，点击时立刻补载
-			mountGiscus(host, attrs);
-			entry.setAttribute('aria-expanded', 'true');
-			entry.setAttribute('aria-label', '收起评论');
-			panel.setAttribute('aria-hidden', 'false');
-			panel.inert = false;
-			requestAnimationFrame(() => {
-				requestAnimationFrame(() => root.classList.add('is-open'));
-			});
+	if (!(window as Window & { __commentsOutsideBound?: boolean }).__commentsOutsideBound) {
+		(window as Window & { __commentsOutsideBound?: boolean }).__commentsOutsideBound = true;
+
+		document.addEventListener('click', () => {
+			const openRoot = document.querySelector<HTMLElement>('.comments.is-open');
+			if (openRoot) setOpen(openRoot, false);
+		});
+
+		document.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape') return;
+			const openRoot = document.querySelector<HTMLElement>('.comments.is-open');
+			if (openRoot) setOpen(openRoot, false);
 		});
 	}
 
 	document.addEventListener('astro:page-load', () => {
-		document.querySelectorAll<HTMLElement>('.comments[data-giscus]').forEach((el) => {
-			delete el.dataset.bound;
-		});
 		bindComments();
 	});
 </script>
 
 <style>
+	/* 不占文章流：整层固定在视口 */
 	.comments {
-		margin-top: 3rem;
-		padding-top: 1.75rem;
-		border-top: 1px solid var(--line);
+		position: fixed;
+		inset: 0;
+		z-index: 55;
+		pointer-events: none;
+		margin: 0;
+		padding: 0;
+		border: none;
+	}
+
+	.entry,
+	.panel {
+		pointer-events: auto;
 	}
 
 	.entry {
+		position: fixed;
+		right: 1.25rem;
+		bottom: 1.25rem;
+		z-index: 57;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.5rem;
-		height: 2.5rem;
+		width: 3rem;
+		height: 3rem;
 		margin: 0;
 		padding: 0;
 		border: 1px solid var(--line);
 		border-radius: 999px;
-		background: transparent;
+		background: var(--bg);
 		color: var(--fg);
+		box-shadow:
+			0 8px 28px color-mix(in srgb, var(--fg) 14%, transparent),
+			0 2px 8px color-mix(in srgb, var(--fg) 6%, transparent);
 		cursor: pointer;
 		transition:
 			opacity 0.25s var(--ease-spring-soft),
 			border-color 0.25s var(--ease-spring-soft),
-			transform 0.35s var(--ease-spring);
+			transform 0.45s var(--ease-spring),
+			box-shadow 0.45s var(--ease-spring-soft);
 	}
 
 	.entry:hover {
-		opacity: 0.7;
 		transform: scale(1.06);
 	}
 
@@ -205,40 +259,65 @@ const giscusAttrs = isGiscusConfigured
 	}
 
 	.panel {
-		display: grid;
-		grid-template-rows: 0fr;
+		position: fixed;
+		right: 1.25rem;
+		bottom: 4.75rem;
+		z-index: 56;
+		display: flex;
+		flex-direction: column;
+		width: min(26rem, calc(100vw - 2.5rem));
+		height: min(32rem, calc(100dvh - 7rem));
+		padding: 0;
+		overflow: hidden;
+		background: var(--bg);
+		border: 1px solid var(--line);
+		border-radius: 14px;
+		box-shadow:
+			0 16px 48px color-mix(in srgb, var(--fg) 16%, transparent),
+			0 4px 12px color-mix(in srgb, var(--fg) 6%, transparent);
 		opacity: 0;
-		pointer-events: none;
 		visibility: hidden;
-		transform: translateY(8px);
+		pointer-events: none;
+		transform: translateY(18px) scale(0.96);
+		transform-origin: bottom right;
 		transition:
-			grid-template-rows 0.5s var(--ease-spring),
-			opacity 0.45s var(--ease-spring-soft),
+			opacity 0.4s var(--ease-spring-soft),
 			transform 0.5s var(--ease-spring),
-			visibility 0s linear 0.45s;
+			visibility 0s linear 0.4s;
 	}
 
 	.comments.is-open .panel {
-		grid-template-rows: 1fr;
 		opacity: 1;
-		pointer-events: auto;
 		visibility: visible;
-		transform: translateY(0);
+		pointer-events: auto;
+		transform: translateY(0) scale(1);
 		transition:
-			grid-template-rows 0.5s var(--ease-spring),
-			opacity 0.45s var(--ease-spring-soft),
+			opacity 0.4s var(--ease-spring-soft),
 			transform 0.5s var(--ease-spring),
 			visibility 0s linear 0s;
 	}
 
-	.panel-inner {
-		overflow: hidden;
+	.comments.is-closing .panel {
+		transition-duration: 0.32s;
+		transition-timing-function: var(--ease-spring-exit);
+	}
+
+	.panel-head {
+		flex-shrink: 0;
+		padding: 0.9rem 1.1rem;
+		border-bottom: 1px solid var(--line);
+		font-size: 0.875em;
+		color: var(--muted);
+	}
+
+	.panel-body {
+		flex: 1;
 		min-height: 0;
+		overflow: auto;
+		padding: 0.75rem 1rem 1rem;
 	}
 
 	.giscus {
-		/* 预加载时给 iframe 足够宽度；高度由 giscus 自己写 */
-		padding-top: 1.25rem;
 		width: 100%;
 		min-height: 1px;
 	}
@@ -247,6 +326,21 @@ const giscusAttrs = isGiscusConfigured
 		width: 100%;
 		border: none;
 		color-scheme: light dark;
+	}
+
+	@media (max-width: 640px) {
+		.entry {
+			right: 1rem;
+			bottom: 1rem;
+		}
+
+		.panel {
+			right: 0.75rem;
+			left: 0.75rem;
+			bottom: 4.5rem;
+			width: auto;
+			height: min(70dvh, 28rem);
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {

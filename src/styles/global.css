@@ -21,6 +21,14 @@
 	--ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
 	--ease-spring-soft: cubic-bezier(0.25, 0.9, 0.35, 1);
 	--ease-spring-exit: cubic-bezier(0.4, 0, 0.2, 1);
+	/* 顶栏：淡蓝渐进，与正文底区分隔（无硬分割线） */
+	--header-bg: linear-gradient(
+		180deg,
+		#e8eef6 0%,
+		#f0f4f9 42%,
+		#f7f9fb 78%,
+		var(--bg) 100%
+	);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -31,6 +39,13 @@
 		--line: #3c3932;
 		--code-bg: #26241f;
 		--surface: #22201c;
+		--header-bg: linear-gradient(
+			180deg,
+			#1e2633 0%,
+			#1b212c 45%,
+			#191c22 78%,
+			var(--bg) 100%
+		);
 	}
 }
 
